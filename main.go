@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alexandria/comment"
 	"alexandria/handler"
 	"alexandria/helper"
 	"alexandria/note"
@@ -45,6 +46,11 @@ func main() {
 	noteService := note.NewService(noteRepository)
 	noteHandler := handler.NewNoteHandler(noteService)
 
+	//COMMENT
+	commentRepository := comment.NewRepository(devDatabase)
+	commentService := comment.NewService(commentRepository)
+	commentHandler := handler.NewCommentHandler(commentService)
+
 	//ROUTE CONFIG
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -56,6 +62,8 @@ func main() {
 	api.DELETE("/notes/:id", authMiddleware(), noteHandler.DeleteNote)
 	api.GET("/notes", noteHandler.GetNotes)
 	api.GET("/notes/:id", noteHandler.GetNoteByID)
+
+	api.POST("/comments", authMiddleware(), commentHandler.CreateComment)
 
 	router.Run()
 
