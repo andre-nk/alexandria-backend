@@ -7,16 +7,16 @@ import (
 )
 
 type Note struct {
-	ID               primitive.ObjectID `bson:"_id, omitempty"`
-	Title            string             `bson:"title, omitempty"`
-	CreatorUID       string             `bson:"creator_uid, omitempty"`
-	Tags             []string           `bson:"tags, omitempty"`
-	Content          []string           `bson:"content, omitempty"`
-	CreatedAt        time.Time          `bson:"created_at, omitempty"`
-	UpdatedAt        time.Time          `bson:"updated_at, omitempty"`
-	IsStarred        bool               `bson:"is_starred, omitempty"`
-	IsArchived       bool               `bson:"is_archived, omitempty"`
-	IsCommentEnabled bool               `bson:"is_comment_enabled, omitempty"`
-	Collaborators    []string           `bson:"collaborators, omitempty"`
-	Views            int64              `bson:"views, omitempty"`
+	ID               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title            string             `json:"title,omitempty" bson:"title,omitempty"`
+	CreatorUID       string             `json:"creator_uid,omitempty" bson:"creator_uid,omitempty"`
+	Tags             []string           `json:"tags,omitempty" bson:"tags,omitempty"`
+	Content          []string           `json:"content,omitempty" bson:"content,omitempty"`
+	CreatedAt        time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	UpdatedAt        time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	IsStarred        bool               `json:"is_starred,omitempty" bson:"is_starred"`
+	IsArchived       bool               `json:"is_archived,omitempty" bson:"is_archived"`
+	IsCommentEnabled bool               `json:"is_comment_enabled,omitempty" bson:"is_comment_enabled"`
+	Collaborators    []string           `json:"collaborators,omitempty" bson:"collaborators,omitempty"`
+	Views            int64              `json:"views,omitempty" bson:"views,omitempty"`
 }

@@ -9,6 +9,8 @@ import (
 type Service interface {
 	CreateNote(noteInput CreateNoteInput) (Note, error)
 	UpdateNote(noteInput UpdateNoteInput) (Note, error)
+	DeleteNote(noteInput UpdateNoteInput) error
+	GetNoteByID(id string) (Note, error)
 }
 
 type service struct {
@@ -32,7 +34,7 @@ func (service *service) CreateNote(noteInput CreateNoteInput) (Note, error) {
 		IsCommentEnabled: noteInput.IsCommentEnabled,
 		IsArchived:       false,
 		Collaborators:    noteInput.Collaborators,
-		Views:            0,
+		Views:            1,
 	}
 
 	newNote, err := service.repository.CreateNote(noteInstance)
@@ -47,16 +49,16 @@ func (service *service) UpdateNote(noteInput UpdateNoteInput) (Note, error) {
 	noteID, _ := primitive.ObjectIDFromHex(noteInput.ID.ID)
 
 	noteInstance := Note{
-		ID:               noteID,
+		ID:               noteID, //for the sake of response only, not to be inserted
 		Title:            noteInput.Title,
 		Tags:             noteInput.Tags,
 		Content:          noteInput.Content,
 		UpdatedAt:        time.Now(),
-		IsStarred:        noteInput.IsStarred,
+		IsStarred:        noteInput.IsStarred, //bool not updated?
 		IsCommentEnabled: noteInput.IsCommentEnabled,
-		IsArchived:       true,
+		IsArchived:       noteInput.IsArchived,
 		Collaborators:    noteInput.Collaborators,
-		Views:            0,
+		Views:            noteInput.Views,
 	}
 
 	updatedNote, err := service.repository.UpdateNote(noteInstance)
@@ -65,4 +67,28 @@ func (service *service) UpdateNote(noteInput UpdateNoteInput) (Note, error) {
 	}
 
 	return updatedNote, nil
+}
+
+func (service *service) DeleteNote(noteInput UpdateNoteInput) error {
+	noteID, _ := primitive.ObjectIDFromHex(noteInput.ID.ID)
+
+	noteInstance := Note{
+		ID: noteID,
+	}
+
+	err := service.repository.DeleteNote(noteInstance)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *service) GetNoteByID(id string) (Note, error) {
+	note, err := service.repository.GetNoteByID(id)
+	if err != nil {
+		return note, err
+	}
+
+	return note, nil
 }

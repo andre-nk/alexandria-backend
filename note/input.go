@@ -1,6 +1,6 @@
 package note
 
-type CreateNoteUri struct {
+type NoteIDUri struct {
 	ID string `uri:"id" binding:"required"`
 }
 
@@ -15,13 +15,14 @@ type CreateNoteInput struct {
 }
 
 type UpdateNoteInput struct {
-	ID               CreateNoteUri `json:"_id"`
-	Title            string        `json:"title"`
-	Tags             []string      `json:"tags"`
-	Content          []string      `json:"content"`
-	IsStarred        bool          `json:"is_starred"`
-	IsArchived       bool          `json:"is_archived"`
-	IsCommentEnabled bool          `json:"is_comment_enabled"`
-	Collaborators    []string      `json:"collaborators"`
-	Views            int64         `json:"views"`
+	ID               NoteIDUri `json:"_id" binding:"required"`
+	CreatorUID       string    `json:"creator_uid"`
+	Title            string    `json:"title"`
+	Tags             []string  `json:"tags"`
+	Content          []string  `json:"content"`
+	IsStarred        bool      `json:"is_starred"`
+	IsArchived       bool      `json:"is_archived"`
+	IsCommentEnabled bool      `json:"is_comment_enabled"`
+	Collaborators    []string  `json:"collaborators"`
+	Views            int64     `json:"views"`
 }

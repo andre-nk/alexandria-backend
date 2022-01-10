@@ -53,6 +53,8 @@ func main() {
 	//NOTES ROUTES
 	api.POST("/notes", authMiddleware(), noteHandler.CreateNote)
 	api.PUT("/notes/:id", authMiddleware(), noteHandler.UpdateNote)
+	api.DELETE("/notes/:id", authMiddleware(), noteHandler.DeleteNote)
+	api.GET("/notes/:id", noteHandler.GetNoteByID)
 
 	router.Run()
 
@@ -165,8 +167,13 @@ func main() {
 func authMiddleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		authHeader := context.GetHeader("Authorization")
+		var uid string
+		tokenArray := strings.Split(authHeader, " ")
+		if len(tokenArray) == 2 {
+			uid = tokenArray[1]
+		}
 
-		if !strings.Contains(authHeader, "Bearer") {
+		if !strings.Contains(authHeader, "Bearer") || uid == "" {
 			response := helper.APIResponse(
 				"Unauthorized request",
 				http.StatusUnauthorized,
@@ -175,12 +182,6 @@ func authMiddleware() gin.HandlerFunc {
 			)
 			context.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
-		}
-
-		var uid string
-		tokenArray := strings.Split(authHeader, " ")
-		if len(tokenArray) == 2 {
-			uid = tokenArray[1]
 		}
 
 		context.Set("currentUID", uid)

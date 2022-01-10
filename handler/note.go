@@ -56,13 +56,13 @@ func (handler *noteHandler) CreateNote(context *gin.Context) {
 }
 
 func (handler *noteHandler) UpdateNote(context *gin.Context) {
-	var noteID note.CreateNoteUri
+	var noteID note.NoteIDUri
 	var input note.UpdateNoteInput
 
 	err := context.ShouldBindUri(&noteID)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to create note due to invalid ID",
+			"Failed to update note due to invalid ID",
 			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),
@@ -77,7 +77,7 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 	err = context.ShouldBindJSON(&input)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to create note due to bad inputs",
+			"Failed to update note due to bad inputs",
 			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),
@@ -90,7 +90,7 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 	updatedNote, err := handler.service.UpdateNote(input)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to create note due to server error",
+			"Failed to update note due to server error",
 			http.StatusBadRequest,
 			"failed",
 			err.Error(),
@@ -105,6 +105,87 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		http.StatusOK,
 		"success",
 		updatedNote,
+	)
+
+	context.JSON(http.StatusOK, response)
+}
+
+func (handler *noteHandler) DeleteNote(context *gin.Context) {
+	var noteID note.NoteIDUri
+	var input note.UpdateNoteInput
+
+	err := context.ShouldBindUri(&noteID)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to delete note due to invalid ID",
+			http.StatusUnprocessableEntity,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	input.ID = noteID
+
+	err = handler.service.DeleteNote(input)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to delete note due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse(
+		"This note has been deleted",
+		http.StatusOK,
+		"success",
+		nil,
+	)
+
+	context.JSON(http.StatusOK, response)
+}
+
+func (handler *noteHandler) GetNoteByID(context *gin.Context) {
+	var noteID note.NoteIDUri
+
+	err := context.ShouldBindUri(&noteID)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to delete note due to invalid ID",
+			http.StatusUnprocessableEntity,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	note, err := handler.service.GetNoteByID(noteID.ID)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to fetch note due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse(
+		"Note by ID fetched!",
+		http.StatusOK,
+		"success",
+		note,
 	)
 
 	context.JSON(http.StatusOK, response)
