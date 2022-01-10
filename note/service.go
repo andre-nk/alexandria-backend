@@ -10,7 +10,13 @@ type Service interface {
 	CreateNote(noteInput CreateNoteInput) (Note, error)
 	UpdateNote(noteInput UpdateNoteInput) (Note, error)
 	DeleteNote(noteInput UpdateNoteInput) error
+	GetAllNotes() ([]Note, error)
 	GetNoteByID(id string) (Note, error)
+	GetNotesByUserID(uid string) ([]Note, error)
+	GetFeaturedNotes() ([]Note, error)
+	GetRecentNotes() ([]Note, error)
+	GetStarredNotes() ([]Note, error)
+	GetArchivedNotes() ([]Note, error)
 }
 
 type service struct {
@@ -84,6 +90,15 @@ func (service *service) DeleteNote(noteInput UpdateNoteInput) error {
 	return nil
 }
 
+func (service *service) GetAllNotes() ([]Note, error) {
+	notes, err := service.repository.GetAllNotes()
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, err
+}
+
 func (service *service) GetNoteByID(id string) (Note, error) {
 	note, err := service.repository.GetNoteByID(id)
 	if err != nil {
@@ -91,4 +106,49 @@ func (service *service) GetNoteByID(id string) (Note, error) {
 	}
 
 	return note, nil
+}
+
+func (service *service) GetNotesByUserID(uid string) ([]Note, error) {
+	notes, err := service.repository.GetNotesByUserID(uid)
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, err
+}
+
+func (service *service) GetFeaturedNotes() ([]Note, error) {
+	notes, err := service.repository.GetFeaturedNotes()
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, nil
+}
+
+func (service *service) GetRecentNotes() ([]Note, error) {
+	notes, err := service.repository.GetRecentNotes()
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, nil
+}
+
+func (service *service) GetStarredNotes() ([]Note, error) {
+	notes, err := service.repository.GetStarredNotes()
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, nil
+}
+
+func (service *service) GetArchivedNotes() ([]Note, error) {
+	notes, err := service.repository.GetArchivedNotes()
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, nil
 }

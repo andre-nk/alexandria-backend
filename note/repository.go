@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Repository interface {
@@ -13,10 +14,12 @@ type Repository interface {
 	UpdateNote(note Note) (Note, error)
 	DeleteNote(note Note) error
 	GetNoteByID(id string) (Note, error)
-	// GetAllNotes() ([]Note, error)
-	// GetNotesByUserID(uid string) ([]Note, error)
-	// GetFeaturedNotes(uid string) ([]Note, error)
-	// GetRecentNotes(uid string) ([]Note, error)
+	GetAllNotes() ([]Note, error)
+	GetNotesByUserID(uid string) ([]Note, error)
+	GetFeaturedNotes() ([]Note, error)
+	GetRecentNotes() ([]Note, error)
+	GetStarredNotes() ([]Note, error)
+	GetArchivedNotes() ([]Note, error)
 }
 
 type repository struct {
@@ -70,6 +73,20 @@ func (repo *repository) DeleteNote(note Note) error {
 	return nil
 }
 
+func (repo *repository) GetAllNotes() ([]Note, error) {
+	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{})
+	if err != nil {
+		return []Note{}, nil
+	}
+	var notes []Note
+	err = cursor.All(context.Background(), &notes)
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, nil
+}
+
 func (repo *repository) GetNoteByID(id string) (Note, error) {
 	var note Note
 	noteID, _ := primitive.ObjectIDFromHex(id)
@@ -85,4 +102,102 @@ func (repo *repository) GetNoteByID(id string) (Note, error) {
 	}
 
 	return note, nil
+}
+
+func (repo *repository) GetNotesByUserID(uid string) ([]Note, error) {
+	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{"creator_uid": uid})
+	if err != nil {
+		return []Note{}, nil
+	}
+	var notes []Note
+	err = cursor.All(context.Background(), &notes)
+	if err != nil {
+		return notes, err
+	}
+
+	return notes, nil
+}
+
+func (repo *repository) GetFeaturedNotes() ([]Note, error) {
+	findOptions := options.Find()
+	findOptions.SetSort(bson.D{{"views", -1}})
+
+	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.D{}, findOptions)
+	if err != nil {
+		return []Note{}, nil
+	}
+
+	var notes []Note
+	err = cursor.All(context.Background(), &notes)
+	if err != nil {
+		return notes, err
+	}
+
+	if len(notes) >= 10 {
+		notes = notes[0:10]
+		return notes, nil
+	}
+
+	return notes, nil
+}
+
+func (repo *repository) GetRecentNotes() ([]Note, error) {
+	findOptions := options.Find()
+	findOptions.SetSort(bson.D{{"updated_at", -1}})
+
+	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.D{}, findOptions)
+	if err != nil {
+		return []Note{}, nil
+	}
+
+	var notes []Note
+	err = cursor.All(context.Background(), &notes)
+	if err != nil {
+		return notes, err
+	}
+
+	if len(notes) >= 10 {
+		notes = notes[0:10]
+		return notes, nil
+	}
+
+	return notes, nil
+}
+
+func (repo *repository) GetStarredNotes() ([]Note, error) {
+	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{"is_starred": true})
+	if err != nil {
+		return []Note{}, nil
+	}
+	var notes []Note
+	err = cursor.All(context.Background(), &notes)
+	if err != nil {
+		return notes, err
+	}
+
+	if len(notes) >= 10 {
+		notes = notes[0:10]
+		return notes, nil
+	}
+
+	return notes, nil
+}
+
+func (repo *repository) GetArchivedNotes() ([]Note, error) {
+	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{"is_archived": true})
+	if err != nil {
+		return []Note{}, nil
+	}
+	var notes []Note
+	err = cursor.All(context.Background(), &notes)
+	if err != nil {
+		return notes, err
+	}
+
+	if len(notes) >= 10 {
+		notes = notes[0:10]
+		return notes, nil
+	}
+
+	return notes, nil
 }

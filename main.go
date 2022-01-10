@@ -54,6 +54,7 @@ func main() {
 	api.POST("/notes", authMiddleware(), noteHandler.CreateNote)
 	api.PUT("/notes/:id", authMiddleware(), noteHandler.UpdateNote)
 	api.DELETE("/notes/:id", authMiddleware(), noteHandler.DeleteNote)
+	api.GET("/notes", noteHandler.GetNotes)
 	api.GET("/notes/:id", noteHandler.GetNoteByID)
 
 	router.Run()
