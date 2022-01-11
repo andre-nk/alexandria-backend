@@ -63,117 +63,13 @@ func main() {
 	api.GET("/notes", noteHandler.GetNotes)
 	api.GET("/notes/:id", noteHandler.GetNoteByID)
 
+	//COMMENTS
 	api.POST("/comments", authMiddleware(), commentHandler.CreateComment)
 	api.GET("/notes/:id/comments/", commentHandler.GetCommentsByNoteID)
 	api.GET("notes/:id/comments/:comment_id", commentHandler.GetCommentByID)
 	api.DELETE("notes/:id/comments/:comment_id", commentHandler.DeleteCommentByID)
 
 	router.Run()
-
-	//create note instance
-	// notes, err := notesCollection.InsertOne(ctx, bson.D{
-	// 	{"title", "Flutter Tweaks"},
-	// 	{"author", "Andreas Notokusumo"},
-	// 	{"tags", bson.A{
-	// 		"flutter", "mobile", "coding",
-	// 	}},
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(notes.InsertedID)
-
-	//update ONE note
-	// id, _ := primitive.ObjectIDFromHex("61d93e56d9ce3ca9b6adf60e")
-	// result, err := notesCollection.UpdateOne(
-	// 	ctx,
-	// 	bson.M{"_id": id},
-	// 	bson.D{
-	// 		{"$set", bson.D{
-	// 			{"tags", bson.A{
-	// 				"flutter", "tweaks", "mobile",
-	// 			}},
-	// 		}},
-	// 	},
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Printf("Updated %v Documents!\n", result.ModifiedCount)
-
-	//update MANY note
-	// result, err := notesCollection.UpdateMany(
-	// 	ctx,
-	// 	bson.M{"title": "Flutter Tweaks"},
-	// 	bson.D{
-	// 		{"$set", bson.D{{"author", "Andrea"}}},
-	// 	},
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Printf("Updated %v Documents!\n", result.ModifiedCount)
-
-	//delete ONE note
-	// id, _ := primitive.ObjectIDFromHex("61d94b103656bcf08c7cc898")
-	// result, err := notesCollection.DeleteOne(
-	// 	ctx,
-	// 	bson.M{
-	// 		"_id": id,
-	// 	},
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(result)
-
-	//fetch all notes
-	// cursor, err := notesCollection.Find(ctx, bson.M{})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// var notes []bson.M
-	// err = cursor.All(ctx, &notes)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// for _, note := range notes {
-	// 	fmt.Println(note["title"])
-	// }
-
-	//fetch one note
-	// var note bson.M
-	// err = notesCollection.FindOne(ctx, bson.M{}).Decode(&note)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(note)
-
-	//filter notes
-	// filterCursor, err := notesCollection.Find(ctx, bson.M{"title": "Flutter Tweaks"})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// var filteredNotes []bson.M
-	// err = filterCursor.All(ctx, &filteredNotes)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(filteredNotes)
-
-	//SORT AND FILTER BY STRING
-	// opts := options.Find()
-	// opts.SetSort(bson.D{
-	// 	{"title", -1},
-	// })
-	// sortCursor, _ := notesCollection.Find(ctx, bson.D{
-	// 	{"title", primitive.Regex{Pattern: "Flut", Options: ""}}}, opts)
-	// var sortedNotes []bson.M
-	// err = sortCursor.All(ctx, &sortedNotes)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(sortedNotes)
 }
 
 func authMiddleware() gin.HandlerFunc {

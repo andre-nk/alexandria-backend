@@ -3,6 +3,7 @@ package handler
 import (
 	"alexandria/helper"
 	"alexandria/note"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -87,6 +88,19 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		return
 	}
 
+	oldNote, err := handler.service.GetNoteByID(noteID.ID)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to update note due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
 	updatedNote, err := handler.service.UpdateNote(input)
 	if err != nil {
 		response := helper.APIResponse(
@@ -98,6 +112,16 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 
 		context.JSON(http.StatusBadRequest, response)
 		return
+	}
+
+	if len(oldNote.Collaborators) < len(updatedNote.Collaborators) {
+		fmt.Println("Updated (add):")
+		fmt.Println(updatedNote.Collaborators[len(oldNote.Collaborators):len(updatedNote.Collaborators)])
+	} else if len(oldNote.Collaborators) > len(updatedNote.Collaborators) {
+		fmt.Println("Updated (del):")
+		fmt.Println(oldNote.Collaborators[len(updatedNote.Collaborators):len(oldNote.Collaborators)])
+	} else {
+		fmt.Println("Collaborators is not updated")
 	}
 
 	response := helper.APIResponse(
