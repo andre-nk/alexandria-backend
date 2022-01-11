@@ -11,6 +11,7 @@ import (
 type Repository interface {
 	CreateActivity(activity Activity) (Activity, error)
 	GetActivityByAffiliateID(id string) ([]Activity, error)
+	MarkActivityAsRead(id string) error
 }
 
 type repository struct {
@@ -31,9 +32,7 @@ func (repo *repository) CreateActivity(activity Activity) (Activity, error) {
 }
 
 func (repo *repository) GetActivityByAffiliateID(id string) ([]Activity, error) {
-	affiliateID, _ := primitive.ObjectIDFromHex(id)
-
-	cursor, err := repo.db.Collection("activities").Find(context.Background(), bson.M{"affiliate_id": affiliateID})
+	cursor, err := repo.db.Collection("activities").Find(context.Background(), bson.M{"affiliate_id": id})
 	if err != nil {
 		return []Activity{}, nil
 	}
@@ -45,4 +44,24 @@ func (repo *repository) GetActivityByAffiliateID(id string) ([]Activity, error) 
 	}
 
 	return activities, nil
+}
+
+func (repo *repository) MarkActivityAsRead(id string) error {
+	activityID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.db.Collection("activities").UpdateOne(
+		context.Background(),
+		bson.M{"_id": activityID},
+		bson.D{
+			{Key: "$set", Value: bson.D{{Key: "is_read", Value: true}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

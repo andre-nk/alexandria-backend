@@ -45,6 +45,7 @@ func main() {
 	//ACTIVITY
 	activityRepository := activity.NewRepository(devDatabase)
 	activityService := activity.NewService(activityRepository)
+	activityHandler := handler.NewActivityHandler(activityService)
 
 	//NOTE
 	noteRepository := note.NewRepository(devDatabase)
@@ -71,8 +72,12 @@ func main() {
 	//COMMENTS
 	api.POST("/comments", authMiddleware(), commentHandler.CreateComment)
 	api.GET("/notes/:id/comments/", commentHandler.GetCommentsByNoteID)
-	api.GET("notes/:id/comments/:comment_id", commentHandler.GetCommentByID)
-	api.DELETE("notes/:id/comments/:comment_id", commentHandler.DeleteCommentByID)
+	api.GET("/notes/:id/comments/:comment_id", commentHandler.GetCommentByID)
+	api.DELETE("/notes/:id/comments/:comment_id", commentHandler.DeleteCommentByID)
+
+	//ACTIVITIES
+	api.GET("/activity/:uid", authMiddleware(), activityHandler.GetActivityByAffiliateID)
+	api.PUT("/activity/:id", authMiddleware(), activityHandler.MarkActivityAsRead)
 
 	router.Run()
 }

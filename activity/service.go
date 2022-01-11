@@ -3,6 +3,7 @@ package activity
 type Service interface {
 	CreateActivity(activity Activity) (Activity, error)
 	GetActivityByAffiliateID(id string) ([]Activity, error)
+	MarkActivityAsRead(id string) error
 }
 
 type service struct {
@@ -29,4 +30,13 @@ func (service *service) GetActivityByAffiliateID(id string) ([]Activity, error) 
 	}
 
 	return activities, nil
+}
+
+func (service *service) MarkActivityAsRead(id string) error {
+	err := service.repository.MarkActivityAsRead(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

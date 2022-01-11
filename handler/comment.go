@@ -5,7 +5,6 @@ import (
 	"alexandria/comment"
 	"alexandria/helper"
 	"alexandria/note"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -111,8 +110,6 @@ func (handler *commentHandler) GetCommentsByNoteID(context *gin.Context) {
 		context.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
-
-	fmt.Println(noteID.ID)
 
 	comments, err := handler.commentService.GetCommentsByNoteID(noteID.ID)
 	if err != nil {
