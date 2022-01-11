@@ -9,14 +9,14 @@ import (
 type Service interface {
 	CreateNote(noteInput CreateNoteInput) (Note, error)
 	UpdateNote(noteInput UpdateNoteInput) (Note, error)
-	DeleteNote(noteInput UpdateNoteInput) error
+	DeleteNote(id string) error
 	GetAllNotes() ([]Note, error)
 	GetNoteByID(id string) (Note, error)
 	GetNotesByUserID(uid string) ([]Note, error)
-	GetFeaturedNotes() ([]Note, error)
-	GetRecentNotes() ([]Note, error)
-	GetStarredNotes() ([]Note, error)
-	GetArchivedNotes() ([]Note, error)
+	GetFeaturedNotes(uid string) ([]Note, error)
+	GetRecentNotes(uid string) ([]Note, error)
+	GetStarredNotes(uid string) ([]Note, error)
+	GetArchivedNotes(uid string) ([]Note, error)
 }
 
 type service struct {
@@ -75,14 +75,8 @@ func (service *service) UpdateNote(noteInput UpdateNoteInput) (Note, error) {
 	return updatedNote, nil
 }
 
-func (service *service) DeleteNote(noteInput UpdateNoteInput) error {
-	noteID, _ := primitive.ObjectIDFromHex(noteInput.ID.ID)
-
-	noteInstance := Note{
-		ID: noteID,
-	}
-
-	err := service.repository.DeleteNote(noteInstance)
+func (service *service) DeleteNote(id string) error {
+	err := service.repository.DeleteNote(id)
 	if err != nil {
 		return err
 	}
@@ -117,8 +111,8 @@ func (service *service) GetNotesByUserID(uid string) ([]Note, error) {
 	return notes, err
 }
 
-func (service *service) GetFeaturedNotes() ([]Note, error) {
-	notes, err := service.repository.GetFeaturedNotes()
+func (service *service) GetFeaturedNotes(uid string) ([]Note, error) {
+	notes, err := service.repository.GetFeaturedNotes(uid)
 	if err != nil {
 		return notes, err
 	}
@@ -126,8 +120,8 @@ func (service *service) GetFeaturedNotes() ([]Note, error) {
 	return notes, nil
 }
 
-func (service *service) GetRecentNotes() ([]Note, error) {
-	notes, err := service.repository.GetRecentNotes()
+func (service *service) GetRecentNotes(uid string) ([]Note, error) {
+	notes, err := service.repository.GetRecentNotes(uid)
 	if err != nil {
 		return notes, err
 	}
@@ -135,8 +129,8 @@ func (service *service) GetRecentNotes() ([]Note, error) {
 	return notes, nil
 }
 
-func (service *service) GetStarredNotes() ([]Note, error) {
-	notes, err := service.repository.GetStarredNotes()
+func (service *service) GetStarredNotes(uid string) ([]Note, error) {
+	notes, err := service.repository.GetStarredNotes(uid)
 	if err != nil {
 		return notes, err
 	}
@@ -144,8 +138,8 @@ func (service *service) GetStarredNotes() ([]Note, error) {
 	return notes, nil
 }
 
-func (service *service) GetArchivedNotes() ([]Note, error) {
-	notes, err := service.repository.GetArchivedNotes()
+func (service *service) GetArchivedNotes(uid string) ([]Note, error) {
+	notes, err := service.repository.GetArchivedNotes(uid)
 	if err != nil {
 		return notes, err
 	}

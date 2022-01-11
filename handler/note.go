@@ -112,7 +112,6 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 
 func (handler *noteHandler) DeleteNote(context *gin.Context) {
 	var noteID note.NoteIDUri
-	var input note.UpdateNoteInput
 
 	err := context.ShouldBindUri(&noteID)
 	if err != nil {
@@ -127,9 +126,7 @@ func (handler *noteHandler) DeleteNote(context *gin.Context) {
 		return
 	}
 
-	input.ID = noteID
-
-	err = handler.service.DeleteNote(input)
+	err = handler.service.DeleteNote(noteID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to delete note due to server error",
@@ -159,31 +156,8 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	isStarred := context.Query("starred")
 	isArchived := context.Query("archived")
 
-	if uid != "" {
-		notes, err := handler.service.GetNotesByUserID(uid)
-		if err != nil {
-			response := helper.APIResponse(
-				"Notes fetching by UID failed due to server error",
-				http.StatusBadGateway,
-				"failed",
-				err.Error(),
-			)
-			context.JSON(http.StatusBadGateway, response)
-			return
-		}
-
-		response := helper.APIResponse(
-			"Notes fetching by UID success!",
-			http.StatusOK,
-			"success",
-			notes,
-		)
-		context.JSON(http.StatusOK, response)
-		return
-	}
-
-	if isFeatured != "" {
-		notes, err := handler.service.GetFeaturedNotes()
+	if isFeatured != "" && uid != "" {
+		notes, err := handler.service.GetFeaturedNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Featured notes fetching failed due to server error",
@@ -205,8 +179,8 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 		return
 	}
 
-	if isRecent != "" {
-		notes, err := handler.service.GetRecentNotes()
+	if isRecent != "" && uid != "" {
+		notes, err := handler.service.GetRecentNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Recent notes fetching failed due to server error",
@@ -228,8 +202,8 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 		return
 	}
 
-	if isStarred != "" {
-		notes, err := handler.service.GetStarredNotes()
+	if isStarred != "" && uid != "" {
+		notes, err := handler.service.GetStarredNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Starred notes fetching failed due to server error",
@@ -251,8 +225,8 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 		return
 	}
 
-	if isArchived != "" {
-		notes, err := handler.service.GetArchivedNotes()
+	if isArchived != "" && uid != "" {
+		notes, err := handler.service.GetArchivedNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Archived notes fetching failed due to server error",
@@ -266,6 +240,29 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 
 		response := helper.APIResponse(
 			"Archived notes fetched!",
+			http.StatusOK,
+			"success",
+			notes,
+		)
+		context.JSON(http.StatusOK, response)
+		return
+	}
+
+	if uid != "" {
+		notes, err := handler.service.GetNotesByUserID(uid)
+		if err != nil {
+			response := helper.APIResponse(
+				"Notes fetching by UID failed due to server error",
+				http.StatusBadGateway,
+				"failed",
+				err.Error(),
+			)
+			context.JSON(http.StatusBadGateway, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"Notes fetching by UID success!",
 			http.StatusOK,
 			"success",
 			notes,
@@ -302,7 +299,7 @@ func (handler *noteHandler) GetNoteByID(context *gin.Context) {
 	err := context.ShouldBindUri(&noteID)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to delete note due to invalid ID",
+			"Failed to fetch note due to invalid ID",
 			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),

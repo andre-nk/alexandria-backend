@@ -64,6 +64,9 @@ func main() {
 	api.GET("/notes/:id", noteHandler.GetNoteByID)
 
 	api.POST("/comments", authMiddleware(), commentHandler.CreateComment)
+	api.GET("/notes/:id/comments/", commentHandler.GetCommentsByNoteID)
+	api.GET("notes/:id/comments/:comment_id", commentHandler.GetCommentByID)
+	api.DELETE("notes/:id/comments/:comment_id", commentHandler.DeleteCommentByID)
 
 	router.Run()
 
