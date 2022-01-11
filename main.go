@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alexandria/activity"
 	"alexandria/comment"
 	"alexandria/handler"
 	"alexandria/helper"
@@ -41,15 +42,19 @@ func main() {
 	//define collections
 	devDatabase := client.Database("alexandria-development")
 
+	//ACTIVITY
+	activityRepository := activity.NewRepository(devDatabase)
+	activityService := activity.NewService(activityRepository)
+
 	//NOTE
 	noteRepository := note.NewRepository(devDatabase)
 	noteService := note.NewService(noteRepository)
-	noteHandler := handler.NewNoteHandler(noteService)
+	noteHandler := handler.NewNoteHandler(noteService, activityService)
 
 	//COMMENT
 	commentRepository := comment.NewRepository(devDatabase)
 	commentService := comment.NewService(commentRepository)
-	commentHandler := handler.NewCommentHandler(commentService)
+	commentHandler := handler.NewCommentHandler(commentService, activityService)
 
 	//ROUTE CONFIG
 	router := gin.Default()

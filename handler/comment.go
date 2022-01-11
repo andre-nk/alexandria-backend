@@ -1,21 +1,25 @@
 package handler
 
 import (
+	"alexandria/activity"
 	"alexandria/comment"
 	"alexandria/helper"
 	"alexandria/note"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type commentHandler struct {
-	service comment.Service
+	commentService  comment.Service
+	activityService activity.Service
 }
 
-func NewCommentHandler(service comment.Service) *commentHandler {
-	return &commentHandler{service}
+func NewCommentHandler(commentService comment.Service, activityService activity.Service) *commentHandler {
+	return &commentHandler{commentService, activityService}
 }
 
 func (handler *commentHandler) CreateComment(context *gin.Context) {
@@ -34,7 +38,7 @@ func (handler *commentHandler) CreateComment(context *gin.Context) {
 		return
 	}
 
-	newComment, err := handler.service.CreateComment(input)
+	newComment, err := handler.commentService.CreateComment(input)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to create comment due to server error",
@@ -44,6 +48,41 @@ func (handler *commentHandler) CreateComment(context *gin.Context) {
 		)
 
 		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if newComment.Mentions != nil {
+		for range newComment.Mentions {
+			activity := activity.Activity{
+				ID:          primitive.NewObjectID(),
+				ActivityID:  newComment.ID,
+				AffiliateID: newComment.CreatorUID,
+				CreatedAt:   time.Now(),
+				IsRead:      false,
+				Message:     "You're mentioned at this comment.",
+			}
+
+			_, err := handler.activityService.CreateActivity(activity)
+			if err != nil {
+				response := helper.APIResponse(
+					"Comment successfully created, but with failed activity creation!",
+					http.StatusOK,
+					"success",
+					err.Error(),
+				)
+
+				context.JSON(http.StatusOK, response)
+				return
+			}
+		}
+
+		response := helper.APIResponse(
+			"Comment successfully created with created activity!",
+			http.StatusOK,
+			"success",
+			newComment,
+		)
+		context.JSON(http.StatusOK, response)
 		return
 	}
 
@@ -75,7 +114,7 @@ func (handler *commentHandler) GetCommentsByNoteID(context *gin.Context) {
 
 	fmt.Println(noteID.ID)
 
-	comments, err := handler.service.GetCommentsByNoteID(noteID.ID)
+	comments, err := handler.commentService.GetCommentsByNoteID(noteID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to fetch comments due to server error",
@@ -114,7 +153,7 @@ func (handler *commentHandler) GetCommentByID(context *gin.Context) {
 		return
 	}
 
-	note, err := handler.service.GetCommentByID(commentID.ID)
+	note, err := handler.commentService.GetCommentByID(commentID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to fetch comment due to server error",
@@ -153,7 +192,7 @@ func (handler *commentHandler) DeleteCommentByID(context *gin.Context) {
 		return
 	}
 
-	err = handler.service.DeleteComment(commentID.ID)
+	err = handler.commentService.DeleteComment(commentID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to delete comment due to server error",

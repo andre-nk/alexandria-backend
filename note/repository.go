@@ -51,7 +51,7 @@ func (repo *repository) UpdateNote(note Note) (Note, error) {
 		return note, err
 	}
 
-	_, err = repo.db.Collection("notes").UpdateOne(context.Background(), bson.M{"_id": note.ID}, bson.D{{"$set", updateNote}})
+	_, err = repo.db.Collection("notes").UpdateOne(context.Background(), bson.M{"_id": note.ID}, bson.D{{Key: "$set", Value: updateNote}})
 	if err != nil {
 		return note, err
 	}
@@ -127,7 +127,7 @@ func (repo *repository) GetNotesByUserID(uid string) ([]Note, error) {
 
 func (repo *repository) GetFeaturedNotes(uid string) ([]Note, error) {
 	findOptions := options.Find()
-	findOptions.SetSort(bson.D{{"views", -1}})
+	findOptions.SetSort(bson.D{{Key: "views", Value: -1}})
 
 	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{"creator_uid": uid}, findOptions)
 	if err != nil {
@@ -150,7 +150,7 @@ func (repo *repository) GetFeaturedNotes(uid string) ([]Note, error) {
 
 func (repo *repository) GetRecentNotes(uid string) ([]Note, error) {
 	findOptions := options.Find()
-	findOptions.SetSort(bson.D{{"updated_at", -1}})
+	findOptions.SetSort(bson.D{{Key: "updated_at", Value: -1}})
 
 	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{"creator_uid": uid}, findOptions)
 	if err != nil {

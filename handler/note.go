@@ -1,20 +1,24 @@
 package handler
 
 import (
+	"alexandria/activity"
 	"alexandria/helper"
 	"alexandria/note"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type noteHandler struct {
-	service note.Service
+	noteService     note.Service
+	activityService activity.Service
 }
 
-func NewNoteHandler(service note.Service) *noteHandler {
-	return &noteHandler{service}
+func NewNoteHandler(noteService note.Service, activityService activity.Service) *noteHandler {
+	return &noteHandler{noteService, activityService}
 }
 
 func (handler *noteHandler) CreateNote(context *gin.Context) {
@@ -33,7 +37,7 @@ func (handler *noteHandler) CreateNote(context *gin.Context) {
 		return
 	}
 
-	newNote, err := handler.service.CreateNote(input)
+	newNote, err := handler.noteService.CreateNote(input)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to create note due to server error",
@@ -88,7 +92,7 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		return
 	}
 
-	oldNote, err := handler.service.GetNoteByID(noteID.ID)
+	oldNote, err := handler.noteService.GetNoteByID(noteID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to update note due to server error",
@@ -101,7 +105,7 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		return
 	}
 
-	updatedNote, err := handler.service.UpdateNote(input)
+	updatedNote, err := handler.noteService.UpdateNote(input)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to update note due to server error",
@@ -109,17 +113,73 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 			"failed",
 			err.Error(),
 		)
-
 		context.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	if len(oldNote.Collaborators) < len(updatedNote.Collaborators) {
-		fmt.Println("Updated (add):")
-		fmt.Println(updatedNote.Collaborators[len(oldNote.Collaborators):len(updatedNote.Collaborators)])
+		activity := activity.Activity{
+			ID:          primitive.NewObjectID(),
+			ActivityID:  oldNote.ID,
+			AffiliateID: oldNote.CreatorUID,
+			CreatedAt:   time.Now(),
+			IsRead:      false,
+			Message:     "You have been invited as collaborator in this note.",
+		}
+
+		_, err := handler.activityService.CreateActivity(activity)
+		if err != nil {
+			response := helper.APIResponse(
+				"Note successfully updated, but with failed activity creation!",
+				http.StatusOK,
+				"success",
+				err.Error(),
+			)
+
+			context.JSON(http.StatusOK, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"Note successfully updated with created activity!",
+			http.StatusOK,
+			"success",
+			updatedNote,
+		)
+		context.JSON(http.StatusOK, response)
+		return
 	} else if len(oldNote.Collaborators) > len(updatedNote.Collaborators) {
-		fmt.Println("Updated (del):")
-		fmt.Println(oldNote.Collaborators[len(updatedNote.Collaborators):len(oldNote.Collaborators)])
+		activity := activity.Activity{
+			ID:          primitive.NewObjectID(),
+			ActivityID:  oldNote.ID,
+			AffiliateID: oldNote.CreatorUID,
+			CreatedAt:   time.Now(),
+			IsRead:      false,
+			Message:     "You have been removed as collaborator in this note.",
+		}
+
+		_, err := handler.activityService.CreateActivity(activity)
+		if err != nil {
+			response := helper.APIResponse(
+				"Note successfully updated, but with failed activity creation!",
+				http.StatusOK,
+				"success",
+				err.Error(),
+			)
+
+			context.JSON(http.StatusOK, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"Note successfully updated with created activity!",
+			http.StatusOK,
+			"success",
+			updatedNote,
+		)
+
+		context.JSON(http.StatusOK, response)
+		return
 	} else {
 		fmt.Println("Collaborators is not updated")
 	}
@@ -130,7 +190,6 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		"success",
 		updatedNote,
 	)
-
 	context.JSON(http.StatusOK, response)
 }
 
@@ -150,7 +209,7 @@ func (handler *noteHandler) DeleteNote(context *gin.Context) {
 		return
 	}
 
-	err = handler.service.DeleteNote(noteID.ID)
+	err = handler.noteService.DeleteNote(noteID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to delete note due to server error",
@@ -181,7 +240,7 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	isArchived := context.Query("archived")
 
 	if isFeatured != "" && uid != "" {
-		notes, err := handler.service.GetFeaturedNotes(uid)
+		notes, err := handler.noteService.GetFeaturedNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Featured notes fetching failed due to server error",
@@ -204,7 +263,7 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	}
 
 	if isRecent != "" && uid != "" {
-		notes, err := handler.service.GetRecentNotes(uid)
+		notes, err := handler.noteService.GetRecentNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Recent notes fetching failed due to server error",
@@ -227,7 +286,7 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	}
 
 	if isStarred != "" && uid != "" {
-		notes, err := handler.service.GetStarredNotes(uid)
+		notes, err := handler.noteService.GetStarredNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Starred notes fetching failed due to server error",
@@ -250,7 +309,7 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	}
 
 	if isArchived != "" && uid != "" {
-		notes, err := handler.service.GetArchivedNotes(uid)
+		notes, err := handler.noteService.GetArchivedNotes(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Archived notes fetching failed due to server error",
@@ -273,7 +332,7 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	}
 
 	if uid != "" {
-		notes, err := handler.service.GetNotesByUserID(uid)
+		notes, err := handler.noteService.GetNotesByUserID(uid)
 		if err != nil {
 			response := helper.APIResponse(
 				"Notes fetching by UID failed due to server error",
@@ -296,7 +355,7 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 	}
 
 	//FETCH ALL NOTES
-	notes, err := handler.service.GetAllNotes()
+	notes, err := handler.noteService.GetAllNotes()
 	if err != nil {
 		response := helper.APIResponse(
 			"All notes fetching failed due to server error",
@@ -333,7 +392,7 @@ func (handler *noteHandler) GetNoteByID(context *gin.Context) {
 		return
 	}
 
-	note, err := handler.service.GetNoteByID(noteID.ID)
+	note, err := handler.noteService.GetNoteByID(noteID.ID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to fetch note due to server error",
