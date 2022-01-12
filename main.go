@@ -6,6 +6,7 @@ import (
 	"alexandria/handler"
 	"alexandria/helper"
 	"alexandria/note"
+	"alexandria/user"
 	"context"
 	"log"
 	"net/http"
@@ -42,6 +43,11 @@ func main() {
 	//define collections
 	devDatabase := client.Database("alexandria-development")
 
+	//USER
+	userRepository := user.NewRepository(devDatabase)
+	userService := user.NewService(userRepository)
+	userHandler := handler.NewUserHandler(userService)
+
 	//ACTIVITY
 	activityRepository := activity.NewRepository(devDatabase)
 	activityService := activity.NewService(activityRepository)
@@ -61,6 +67,9 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 	api := router.Group("api/v1")
+
+	//USER ROUTES
+	api.POST("/users", userHandler.RegisterUser)
 
 	//NOTES ROUTES
 	api.POST("/notes", authMiddleware(), noteHandler.CreateNote)
