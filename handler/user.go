@@ -54,3 +54,42 @@ func (handler *userHandler) RegisterUser(context *gin.Context) {
 
 	context.JSON(http.StatusOK, response)
 }
+
+func (handler *userHandler) GetUserByUID(context *gin.Context) {
+	var uid user.UserIDUri
+
+	err := context.ShouldBindUri(&uid)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to fetch user due to invalid UID",
+			http.StatusUnprocessableEntity,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	user, err := handler.service.GetUserByUID(uid.UID)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to fetch user due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse(
+		"User fetched!",
+		http.StatusOK,
+		"success",
+		user,
+	)
+
+	context.JSON(http.StatusOK, response)
+}

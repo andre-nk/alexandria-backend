@@ -4,6 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Service interface {
 	RegisterUser(user UserInput) (User, error)
+	GetUserByUID(id string) (User, error)
 }
 
 type service struct {
@@ -31,4 +32,13 @@ func (service *service) RegisterUser(user UserInput) (User, error) {
 	}
 
 	return newUser, nil
+}
+
+func (service *service) GetUserByUID(id string) (User, error) {
+	user, err := service.repository.GetUserByUID(id)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
