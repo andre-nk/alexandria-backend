@@ -21,9 +21,12 @@ func NewRepository(db *mongo.Database) *repository {
 }
 
 func (repo *repository) RegisterUser(user User) (User, error) {
-	_, err := repo.db.Collection("users").InsertOne(context.Background(), user)
+	_, err := repo.GetUserByUID(user.UID)
 	if err != nil {
-		return user, err
+		_, err = repo.db.Collection("users").InsertOne(context.Background(), user)
+		if err != nil {
+			return user, err
+		}
 	}
 
 	return user, nil
