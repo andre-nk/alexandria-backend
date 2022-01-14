@@ -4,6 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Service interface {
 	RegisterUser(user UserInput) (User, error)
+	UpdateUser(user UserInput) (User, error)
 	GetUserByUID(id string) (User, error)
 }
 
@@ -32,6 +33,22 @@ func (service *service) RegisterUser(user UserInput) (User, error) {
 	}
 
 	return newUser, nil
+}
+
+func (service *service) UpdateUser(user UserInput) (User, error) {
+	userInstance := User{
+		UID:      user.UID,
+		Role:     user.Role,
+		Location: user.Location,
+		Friends:  user.Friends,
+	}
+
+	updatedUser, err := service.repository.UpdateUser(userInstance)
+	if err != nil {
+		return updatedUser, err
+	}
+
+	return updatedUser, nil
 }
 
 func (service *service) GetUserByUID(id string) (User, error) {

@@ -16,13 +16,13 @@ type CreateNoteInput struct {
 
 type UpdateNoteInput struct {
 	ID               NoteIDUri `json:"_id" binding:"required"`
-	CreatorUID       string    `json:"creator_uid"`
-	Title            string    `json:"title"`
-	Tags             []string  `json:"tags"`
-	Content          []string  `json:"content"`
+	CreatorUID       string    `json:"creator_uid" binding:"required"`
+	Title            string    `json:"title" binding:"required"`
+	Tags             []string  `json:"tags" binding:"required"`
+	Content          []string  `json:"content" binding:"required"`
 	IsStarred        bool      `json:"is_starred"`
-	IsArchived       bool      `json:"is_archived"`
+	IsArchived       bool      `json:"is_archived,omitempty"`
 	IsCommentEnabled bool      `json:"is_comment_enabled"`
-	Collaborators    []string  `json:"collaborators"`
+	Collaborators    []string  `json:"collaborators" binding:"required"`
 	Views            int64     `json:"views"`
 }

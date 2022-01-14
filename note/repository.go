@@ -62,7 +62,12 @@ func (repo *repository) UpdateNote(note Note) (Note, error) {
 func (repo *repository) DeleteNote(id string) error {
 	noteID, _ := primitive.ObjectIDFromHex(id)
 
-	_, err := repo.db.Collection("comments").DeleteMany(context.Background(), bson.M{"note_id": noteID})
+	_, err := repo.db.Collection("activities").DeleteMany(context.Background(), bson.M{"activity_id": noteID})
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.db.Collection("comments").DeleteMany(context.Background(), bson.M{"note_id": noteID})
 	if err != nil {
 		return err
 	}

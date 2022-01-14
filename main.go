@@ -71,6 +71,7 @@ func main() {
 	//USER ROUTES
 	api.POST("/users", userHandler.RegisterUser)
 	api.GET("/users/:uid", userHandler.GetUserByUID)
+	api.PUT("/users", authMiddleware(), userHandler.UpdateUser)
 
 	//NOTES ROUTES
 	api.POST("/notes", authMiddleware(), noteHandler.CreateNote)

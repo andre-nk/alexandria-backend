@@ -55,6 +55,45 @@ func (handler *userHandler) RegisterUser(context *gin.Context) {
 	context.JSON(http.StatusOK, response)
 }
 
+func (handler *userHandler) UpdateUser(context *gin.Context) {
+	var input user.UserInput
+
+	err := context.ShouldBindJSON(&input)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to update user due to bad inputs",
+			http.StatusUnprocessableEntity,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	updatedUser, err := handler.service.UpdateUser(input)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to update user due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse(
+		"User successfully updated!",
+		http.StatusOK,
+		"success",
+		updatedUser,
+	)
+
+	context.JSON(http.StatusOK, response)
+}
+
 func (handler *userHandler) GetUserByUID(context *gin.Context) {
 	var uid user.UserIDUri
 

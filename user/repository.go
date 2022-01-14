@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	RegisterUser(user User) (User, error)
+	UpdateUser(user User) (User, error)
 	GetUserByUID(id string) (User, error)
 }
 
@@ -27,6 +28,26 @@ func (repo *repository) RegisterUser(user User) (User, error) {
 		if err != nil {
 			return user, err
 		}
+	}
+
+	return user, nil
+}
+
+func (repo *repository) UpdateUser(user User) (User, error) {
+	userByte, err := bson.Marshal(user)
+	if err != nil {
+		return user, err
+	}
+
+	var User bson.M
+	err = bson.Unmarshal(userByte, &User)
+	if err != nil {
+		return user, err
+	}
+
+	_, err = repo.db.Collection("users").UpdateOne(context.Background(), bson.M{"uid": user.UID}, bson.D{{Key: "$set", Value: User}})
+	if err != nil {
+		return user, err
 	}
 
 	return user, nil

@@ -117,18 +117,30 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		return
 	}
 
+	fmt.Println(oldNote.Collaborators, updatedNote.Collaborators)
+
 	if len(oldNote.Collaborators) < len(updatedNote.Collaborators) {
-		activity := activity.Activity{
-			ID:          primitive.NewObjectID(),
-			ActivityID:  oldNote.ID,
-			AffiliateID: oldNote.CreatorUID,
-			CreatedAt:   time.Now(),
-			IsRead:      false,
-			Message:     "You have been invited as collaborator in this note.",
+		var globalError error
+
+		fmt.Println("Added collab")
+
+		for _, collaboratorID := range updatedNote.Collaborators {
+			activity := activity.Activity{
+				ID:          primitive.NewObjectID(),
+				ActivityID:  oldNote.ID,
+				AffiliateID: collaboratorID,
+				CreatedAt:   time.Now(),
+				IsRead:      false,
+				Message:     "You have been invited as collaborator in this note.",
+			}
+
+			_, err := handler.activityService.CreateActivity(activity)
+			if err != nil {
+				globalError = err
+			}
 		}
 
-		_, err := handler.activityService.CreateActivity(activity)
-		if err != nil {
+		if globalError != nil {
 			response := helper.APIResponse(
 				"Note successfully updated, but with failed activity creation!",
 				http.StatusOK,
@@ -149,17 +161,25 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		context.JSON(http.StatusOK, response)
 		return
 	} else if len(oldNote.Collaborators) > len(updatedNote.Collaborators) {
-		activity := activity.Activity{
-			ID:          primitive.NewObjectID(),
-			ActivityID:  oldNote.ID,
-			AffiliateID: oldNote.CreatorUID,
-			CreatedAt:   time.Now(),
-			IsRead:      false,
-			Message:     "You have been removed as collaborator in this note.",
+		var globalError error
+
+		for _, collaboratorID := range oldNote.Collaborators {
+			activity := activity.Activity{
+				ID:          primitive.NewObjectID(),
+				ActivityID:  oldNote.ID,
+				AffiliateID: collaboratorID,
+				CreatedAt:   time.Now(),
+				IsRead:      false,
+				Message:     "You have been removed as collaborator in this note.",
+			}
+
+			_, err := handler.activityService.CreateActivity(activity)
+			if err != nil {
+				globalError = err
+			}
 		}
 
-		_, err := handler.activityService.CreateActivity(activity)
-		if err != nil {
+		if globalError != nil {
 			response := helper.APIResponse(
 				"Note successfully updated, but with failed activity creation!",
 				http.StatusOK,
