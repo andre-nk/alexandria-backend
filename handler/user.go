@@ -94,6 +94,45 @@ func (handler *userHandler) UpdateUser(context *gin.Context) {
 	context.JSON(http.StatusOK, response)
 }
 
+func (handler *userHandler) DeleteUser(context *gin.Context) {
+	var uid user.UserIDUri
+
+	err := context.ShouldBindUri(&uid)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to delete user due to invalid UID",
+			http.StatusUnprocessableEntity,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	err = handler.service.DeleteUser(uid.UID)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to delete user due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse(
+		"User deleted!",
+		http.StatusOK,
+		"success",
+		nil,
+	)
+
+	context.JSON(http.StatusOK, response)
+}
+
 func (handler *userHandler) GetUserByUID(context *gin.Context) {
 	var uid user.UserIDUri
 

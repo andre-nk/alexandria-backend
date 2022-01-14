@@ -5,6 +5,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type Service interface {
 	RegisterUser(user UserInput) (User, error)
 	UpdateUser(user UserInput) (User, error)
+	DeleteUser(id string) error
 	GetUserByUID(id string) (User, error)
 }
 
@@ -49,6 +50,15 @@ func (service *service) UpdateUser(user UserInput) (User, error) {
 	}
 
 	return updatedUser, nil
+}
+
+func (service *service) DeleteUser(id string) error {
+	err := service.repository.DeleteUser(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *service) GetUserByUID(id string) (User, error) {

@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	RegisterUser(user User) (User, error)
 	UpdateUser(user User) (User, error)
+	DeleteUser(id string) error
 	GetUserByUID(id string) (User, error)
 }
 
@@ -51,6 +52,35 @@ func (repo *repository) UpdateUser(user User) (User, error) {
 	}
 
 	return user, nil
+}
+
+func (repo *repository) DeleteUser(id string) error {
+	_, err := repo.db.Collection("users").DeleteOne(
+		context.Background(),
+		bson.M{
+			"uid": id,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.db.Collection("activities").DeleteMany(context.Background(), bson.M{"affiliate_id": id})
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.db.Collection("comments").DeleteMany(context.Background(), bson.M{"creator_uid": id})
+	if err != nil {
+		return err
+	}
+
+	_, err = repo.db.Collection("notes").DeleteMany(context.Background(), bson.M{"creator_uid": id})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *repository) GetUserByUID(id string) (User, error) {

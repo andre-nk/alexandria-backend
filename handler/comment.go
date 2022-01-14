@@ -51,11 +51,11 @@ func (handler *commentHandler) CreateComment(context *gin.Context) {
 	}
 
 	if newComment.Mentions != nil {
-		for range newComment.Mentions {
+		for _, mentionedID := range newComment.Mentions {
 			activity := activity.Activity{
 				ID:          primitive.NewObjectID(),
 				ActivityID:  newComment.ID,
-				AffiliateID: newComment.CreatorUID,
+				AffiliateID: mentionedID,
 				CreatedAt:   time.Now(),
 				IsRead:      false,
 				Message:     "You're mentioned at this comment.",

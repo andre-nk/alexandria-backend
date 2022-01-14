@@ -70,8 +70,9 @@ func main() {
 
 	//USER ROUTES
 	api.POST("/users", userHandler.RegisterUser)
-	api.GET("/users/:uid", userHandler.GetUserByUID)
 	api.PUT("/users", authMiddleware(), userHandler.UpdateUser)
+	api.DELETE("/users/:uid", authMiddleware(), userHandler.DeleteUser)
+	api.GET("/users/:uid", userHandler.GetUserByUID)
 
 	//NOTES ROUTES
 	api.POST("/notes", authMiddleware(), noteHandler.CreateNote)
