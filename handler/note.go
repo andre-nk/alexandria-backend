@@ -374,26 +374,14 @@ func (handler *noteHandler) GetNotes(context *gin.Context) {
 		return
 	}
 
-	//FETCH ALL NOTES
-	notes, err := handler.noteService.GetAllNotes()
-	if err != nil {
-		response := helper.APIResponse(
-			"All notes fetching failed due to server error",
-			http.StatusBadGateway,
-			"failed",
-			err.Error(),
-		)
-		context.JSON(http.StatusBadGateway, response)
-		return
-	}
-
+	//FALLBACK
 	response := helper.APIResponse(
-		"All notes fetching success!",
-		http.StatusOK,
+		"False endpoint",
+		http.StatusBadRequest,
 		"success",
-		notes,
+		nil,
 	)
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusBadRequest, response)
 }
 
 func (handler *noteHandler) GetNoteByID(context *gin.Context) {

@@ -10,7 +10,6 @@ type Service interface {
 	CreateNote(noteInput CreateNoteInput) (Note, error)
 	UpdateNote(noteInput UpdateNoteInput) (Note, error)
 	DeleteNote(id string) error
-	GetAllNotes() ([]Note, error)
 	GetNoteByID(id string) (Note, error)
 	GetNotesByUserID(uid string) ([]Note, error)
 	GetFeaturedNotes(uid string) ([]Note, error)
@@ -82,15 +81,6 @@ func (service *service) DeleteNote(id string) error {
 	}
 
 	return nil
-}
-
-func (service *service) GetAllNotes() ([]Note, error) {
-	notes, err := service.repository.GetAllNotes()
-	if err != nil {
-		return notes, err
-	}
-
-	return notes, err
 }
 
 func (service *service) GetNoteByID(id string) (Note, error) {

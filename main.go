@@ -98,6 +98,7 @@ func authMiddleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		authHeader := context.GetHeader("Authorization")
 		var uid string
+
 		tokenArray := strings.Split(authHeader, " ")
 		if len(tokenArray) == 2 {
 			uid = tokenArray[1]

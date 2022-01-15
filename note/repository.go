@@ -14,7 +14,6 @@ type Repository interface {
 	UpdateNote(note Note) (Note, error)
 	DeleteNote(id string) error
 	GetNoteByID(id string) (Note, error)
-	GetAllNotes() ([]Note, error)
 	GetNotesByUserID(uid string) ([]Note, error)
 	GetFeaturedNotes(uid string) ([]Note, error)
 	GetRecentNotes(uid string) ([]Note, error)
@@ -83,20 +82,6 @@ func (repo *repository) DeleteNote(id string) error {
 	}
 
 	return nil
-}
-
-func (repo *repository) GetAllNotes() ([]Note, error) {
-	cursor, err := repo.db.Collection("notes").Find(context.Background(), bson.M{})
-	if err != nil {
-		return []Note{}, nil
-	}
-	var notes []Note
-	err = cursor.All(context.Background(), &notes)
-	if err != nil {
-		return notes, err
-	}
-
-	return notes, nil
 }
 
 func (repo *repository) GetNoteByID(id string) (Note, error) {
