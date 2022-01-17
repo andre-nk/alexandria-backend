@@ -79,13 +79,13 @@ func main() {
 	api.PUT("/notes/:id", authMiddleware(), noteHandler.UpdateNote)
 	api.DELETE("/notes/:id", authMiddleware(), noteHandler.DeleteNote)
 	api.GET("/notes", noteHandler.GetNotes)
-	api.GET("/notes/:id", noteHandler.GetNoteByID)
+	api.GET("/notes/:id", authMiddleware(), noteHandler.GetNoteByID)
 
 	//COMMENTS
 	api.POST("/comments", authMiddleware(), commentHandler.CreateComment)
 	api.GET("/notes/:id/comments/", commentHandler.GetCommentsByNoteID)
 	api.GET("/notes/:id/comments/:comment_id", commentHandler.GetCommentByID)
-	api.DELETE("/notes/:id/comments/:comment_id", commentHandler.DeleteCommentByID)
+	api.DELETE("/notes/:id/comments/:comment_id", authMiddleware(), commentHandler.DeleteCommentByID)
 
 	//ACTIVITIES
 	api.GET("/activity/:uid", authMiddleware(), activityHandler.GetActivityByAffiliateID)

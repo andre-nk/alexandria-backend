@@ -71,27 +71,51 @@ func (handler *userHandler) UpdateUser(context *gin.Context) {
 		return
 	}
 
-	updatedUser, err := handler.service.UpdateUser(input)
+	oldUser, err := handler.service.GetUserByUID(input.UID)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to update user due to server error",
-			http.StatusBadRequest,
+			"Failed to update user due to bad inputs",
+			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),
 		)
 
-		context.JSON(http.StatusBadRequest, response)
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	if oldUser.UID == context.MustGet("currentUID") {
+		updatedUser, err := handler.service.UpdateUser(input)
+		if err != nil {
+			response := helper.APIResponse(
+				"Failed to update user due to server error",
+				http.StatusBadRequest,
+				"failed",
+				err.Error(),
+			)
+
+			context.JSON(http.StatusBadRequest, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"User successfully updated!",
+			http.StatusOK,
+			"success",
+			updatedUser,
+		)
+
+		context.JSON(http.StatusOK, response)
 		return
 	}
 
 	response := helper.APIResponse(
-		"User successfully updated!",
-		http.StatusOK,
-		"success",
-		updatedUser,
+		"User can't be updated due to unauthorized request!",
+		http.StatusUnauthorized,
+		"failed",
+		nil,
 	)
-
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusUnauthorized, response)
 }
 
 func (handler *userHandler) DeleteUser(context *gin.Context) {
@@ -110,27 +134,50 @@ func (handler *userHandler) DeleteUser(context *gin.Context) {
 		return
 	}
 
-	err = handler.service.DeleteUser(uid.UID)
+	oldUser, err := handler.service.GetUserByUID(uid.UID)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to delete user due to server error",
-			http.StatusBadRequest,
+			"Failed to delete user due to bad inputs",
+			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),
 		)
 
-		context.JSON(http.StatusBadRequest, response)
+		context.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
 
+	if oldUser.UID == context.MustGet("currentUID") {
+		err = handler.service.DeleteUser(uid.UID)
+		if err != nil {
+			response := helper.APIResponse(
+				"Failed to delete user due to server error",
+				http.StatusBadRequest,
+				"failed",
+				err.Error(),
+			)
+
+			context.JSON(http.StatusBadRequest, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"User deleted!",
+			http.StatusOK,
+			"success",
+			nil,
+		)
+
+		context.JSON(http.StatusOK, response)
+	}
+
 	response := helper.APIResponse(
-		"User deleted!",
-		http.StatusOK,
-		"success",
+		"User can't be deleted due to unauthorized request!",
+		http.StatusUnauthorized,
+		"failed",
 		nil,
 	)
-
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusUnauthorized, response)
 }
 
 func (handler *userHandler) GetUserByUID(context *gin.Context) {

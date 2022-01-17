@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	CreateActivity(activity Activity) (Activity, error)
+	GetActivityByID(id string) (Activity, error)
 	GetActivityByAffiliateID(id string) ([]Activity, error)
 	MarkActivityAsRead(id string) error
 }
@@ -44,6 +45,23 @@ func (repo *repository) GetActivityByAffiliateID(id string) ([]Activity, error) 
 	}
 
 	return activities, nil
+}
+
+func (repo *repository) GetActivityByID(id string) (Activity, error) {
+	var activity Activity
+	noteID, _ := primitive.ObjectIDFromHex(id)
+
+	err := repo.db.Collection("activities").FindOne(
+		context.Background(),
+		bson.M{
+			"_id": noteID,
+		},
+	).Decode(&activity)
+	if err != nil {
+		return activity, err
+	}
+
+	return activity, nil
 }
 
 func (repo *repository) MarkActivityAsRead(id string) error {

@@ -105,112 +105,123 @@ func (handler *noteHandler) UpdateNote(context *gin.Context) {
 		return
 	}
 
-	updatedNote, err := handler.noteService.UpdateNote(input)
-	if err != nil {
-		response := helper.APIResponse(
-			"Failed to update note due to server error",
-			http.StatusBadRequest,
-			"failed",
-			err.Error(),
-		)
-		context.JSON(http.StatusBadRequest, response)
-		return
-	}
-
-	fmt.Println(oldNote.Collaborators, updatedNote.Collaborators)
-
-	if len(oldNote.Collaborators) < len(updatedNote.Collaborators) {
-		var globalError error
-
-		fmt.Println("Added collab")
-
-		for _, collaboratorID := range updatedNote.Collaborators {
-			activity := activity.Activity{
-				ID:          primitive.NewObjectID(),
-				ActivityID:  oldNote.ID,
-				AffiliateID: collaboratorID,
-				CreatedAt:   time.Now(),
-				IsRead:      false,
-				Message:     "You have been invited as collaborator in this note.",
-			}
-
-			_, err := handler.activityService.CreateActivity(activity)
-			if err != nil {
-				globalError = err
-			}
+	if oldNote.CreatorUID == context.MustGet("currentUID") {
+		updatedNote, err := handler.noteService.UpdateNote(input)
+		if err != nil {
+			response := helper.APIResponse(
+				"Failed to update note due to server error",
+				http.StatusBadRequest,
+				"failed",
+				err.Error(),
+			)
+			context.JSON(http.StatusBadRequest, response)
+			return
 		}
 
-		if globalError != nil {
+		fmt.Println(oldNote.Collaborators, updatedNote.Collaborators)
+
+		if len(oldNote.Collaborators) < len(updatedNote.Collaborators) {
+			var globalError error
+
+			fmt.Println("Added collab")
+
+			for _, collaboratorID := range updatedNote.Collaborators {
+				activity := activity.Activity{
+					ID:          primitive.NewObjectID(),
+					ActivityID:  oldNote.ID,
+					AffiliateID: collaboratorID,
+					CreatedAt:   time.Now(),
+					IsRead:      false,
+					Message:     "You have been invited as collaborator in this note.",
+				}
+
+				_, err := handler.activityService.CreateActivity(activity)
+				if err != nil {
+					globalError = err
+				}
+			}
+
+			if globalError != nil {
+				response := helper.APIResponse(
+					"Note successfully updated, but with failed activity creation!",
+					http.StatusOK,
+					"success",
+					err.Error(),
+				)
+
+				context.JSON(http.StatusOK, response)
+				return
+			}
+
 			response := helper.APIResponse(
-				"Note successfully updated, but with failed activity creation!",
+				"Note successfully updated with created activity!",
 				http.StatusOK,
 				"success",
-				err.Error(),
+				updatedNote,
+			)
+			context.JSON(http.StatusOK, response)
+			return
+		} else if len(oldNote.Collaborators) > len(updatedNote.Collaborators) {
+			var globalError error
+
+			for _, collaboratorID := range oldNote.Collaborators {
+				activity := activity.Activity{
+					ID:          primitive.NewObjectID(),
+					ActivityID:  oldNote.ID,
+					AffiliateID: collaboratorID,
+					CreatedAt:   time.Now(),
+					IsRead:      false,
+					Message:     "You have been removed as collaborator in this note.",
+				}
+
+				_, err := handler.activityService.CreateActivity(activity)
+				if err != nil {
+					globalError = err
+				}
+			}
+
+			if globalError != nil {
+				response := helper.APIResponse(
+					"Note successfully updated, but with failed activity creation!",
+					http.StatusOK,
+					"success",
+					err.Error(),
+				)
+
+				context.JSON(http.StatusOK, response)
+				return
+			}
+
+			response := helper.APIResponse(
+				"Note successfully updated with created activity!",
+				http.StatusOK,
+				"success",
+				updatedNote,
 			)
 
 			context.JSON(http.StatusOK, response)
 			return
+		} else {
+			fmt.Println("Collaborators is not updated")
 		}
 
 		response := helper.APIResponse(
-			"Note successfully updated with created activity!",
+			"Note successfully updated!",
 			http.StatusOK,
 			"success",
 			updatedNote,
 		)
 		context.JSON(http.StatusOK, response)
 		return
-	} else if len(oldNote.Collaborators) > len(updatedNote.Collaborators) {
-		var globalError error
-
-		for _, collaboratorID := range oldNote.Collaborators {
-			activity := activity.Activity{
-				ID:          primitive.NewObjectID(),
-				ActivityID:  oldNote.ID,
-				AffiliateID: collaboratorID,
-				CreatedAt:   time.Now(),
-				IsRead:      false,
-				Message:     "You have been removed as collaborator in this note.",
-			}
-
-			_, err := handler.activityService.CreateActivity(activity)
-			if err != nil {
-				globalError = err
-			}
-		}
-
-		if globalError != nil {
-			response := helper.APIResponse(
-				"Note successfully updated, but with failed activity creation!",
-				http.StatusOK,
-				"success",
-				err.Error(),
-			)
-
-			context.JSON(http.StatusOK, response)
-			return
-		}
-
-		response := helper.APIResponse(
-			"Note successfully updated with created activity!",
-			http.StatusOK,
-			"success",
-			updatedNote,
-		)
-
-		context.JSON(http.StatusOK, response)
-		return
-	} else {
-		fmt.Println("Collaborators is not updated")
 	}
 
 	response := helper.APIResponse(
-		"Note successfully updated!",
-		http.StatusOK,
-		"success",
-		updatedNote,
+		"Note can't be updated due to unauthorized request!",
+		http.StatusUnauthorized,
+		"failed",
+		nil,
 	)
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusUnauthorized, response)
 }
 
 func (handler *noteHandler) DeleteNote(context *gin.Context) {
@@ -229,27 +240,52 @@ func (handler *noteHandler) DeleteNote(context *gin.Context) {
 		return
 	}
 
-	err = handler.noteService.DeleteNote(noteID.ID)
+	oldNote, err := handler.noteService.GetNoteByID(noteID.ID)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to delete note due to server error",
-			http.StatusBadRequest,
+			"Failed to delete note due to invalid ID",
+			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),
 		)
 
-		context.JSON(http.StatusBadRequest, response)
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	if oldNote.CreatorUID == context.MustGet("currentUID") {
+		err = handler.noteService.DeleteNote(noteID.ID)
+		if err != nil {
+			response := helper.APIResponse(
+				"Failed to delete note due to server error",
+				http.StatusBadRequest,
+				"failed",
+				err.Error(),
+			)
+
+			context.JSON(http.StatusBadRequest, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"This note has been deleted",
+			http.StatusOK,
+			"success",
+			nil,
+		)
+
+		context.JSON(http.StatusOK, response)
 		return
 	}
 
 	response := helper.APIResponse(
-		"This note has been deleted",
-		http.StatusOK,
-		"success",
-		nil,
+		"Failed to delete note due to unauthorized request!",
+		http.StatusUnauthorized,
+		"failed",
+		err.Error(),
 	)
 
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusUnauthorized, response)
 }
 
 func (handler *noteHandler) GetNotes(context *gin.Context) {

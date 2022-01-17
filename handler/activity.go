@@ -33,7 +33,7 @@ func (handler *activityHandler) GetActivityByAffiliateID(context *gin.Context) {
 		return
 	}
 
-	activity, err := handler.service.GetActivityByAffiliateID(userID.UID)
+	activities, err := handler.service.GetActivityByAffiliateID(userID.UID)
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to fetch activities due to server error",
@@ -46,14 +46,26 @@ func (handler *activityHandler) GetActivityByAffiliateID(context *gin.Context) {
 		return
 	}
 
+	if activities[0].AffiliateID == context.MustGet("currentUID") {
+		response := helper.APIResponse(
+			"Activities fetched!",
+			http.StatusOK,
+			"success",
+			activities,
+		)
+
+		context.JSON(http.StatusOK, response)
+		return
+	}
+
 	response := helper.APIResponse(
-		"Activities fetched!",
-		http.StatusOK,
-		"success",
-		activity,
+		"Activities fetching failed due to unauthorized request!",
+		http.StatusUnauthorized,
+		"failed",
+		nil,
 	)
 
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusUnauthorized, response)
 }
 
 func (handler *activityHandler) MarkActivityAsRead(context *gin.Context) {
@@ -72,25 +84,50 @@ func (handler *activityHandler) MarkActivityAsRead(context *gin.Context) {
 		return
 	}
 
-	err = handler.service.MarkActivityAsRead(activityID.ID)
+	oldActivity, err := handler.service.GetActivityByID(activityID.ID)
 	if err != nil {
 		response := helper.APIResponse(
-			"Failed to mark activity due to server error",
-			http.StatusBadRequest,
+			"Failed to mark activity due to invalid Activity ID",
+			http.StatusUnprocessableEntity,
 			"failed",
 			err.Error(),
 		)
 
-		context.JSON(http.StatusBadRequest, response)
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	if oldActivity.AffiliateID == context.MustGet("currentUID") {
+		err = handler.service.MarkActivityAsRead(activityID.ID)
+		if err != nil {
+			response := helper.APIResponse(
+				"Failed to mark activity due to server error",
+				http.StatusBadRequest,
+				"failed",
+				err.Error(),
+			)
+
+			context.JSON(http.StatusBadRequest, response)
+			return
+		}
+
+		response := helper.APIResponse(
+			"Activities fetched!",
+			http.StatusOK,
+			"success",
+			nil,
+		)
+
+		context.JSON(http.StatusOK, response)
 		return
 	}
 
 	response := helper.APIResponse(
-		"Activities fetched!",
-		http.StatusOK,
-		"success",
+		"Failed to mark activity due to unauthorized request",
+		http.StatusUnauthorized,
+		"failed",
 		nil,
 	)
 
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusUnauthorized, response)
 }

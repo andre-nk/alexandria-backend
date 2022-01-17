@@ -3,6 +3,7 @@ package activity
 type Service interface {
 	CreateActivity(activity Activity) (Activity, error)
 	GetActivityByAffiliateID(id string) ([]Activity, error)
+	GetActivityByID(id string) (Activity, error)
 	MarkActivityAsRead(id string) error
 }
 
@@ -30,6 +31,15 @@ func (service *service) GetActivityByAffiliateID(id string) ([]Activity, error) 
 	}
 
 	return activities, nil
+}
+
+func (service *service) GetActivityByID(id string) (Activity, error) {
+	activity, err := service.repository.GetActivityByID(id)
+	if err != nil {
+		return activity, err
+	}
+
+	return activity, nil
 }
 
 func (service *service) MarkActivityAsRead(id string) error {
