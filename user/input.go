@@ -5,8 +5,9 @@ type UserIDUri struct {
 }
 
 type UserInput struct {
-	UID      string   `json:"uid" binding:"required"`
-	Role     string   `json:"role,omitempty"`
-	Location string   `json:"location,omitempty"`
-	Friends  []string `json:"friends,omitempty" binding:"required"`
+	UID         string `json:"uid" binding:"required"`
+	DisplayName string `json:"displayName" binding:"required"`
+	PhotoURL    string `json:"photoURL,omitempty"`
+	Role        string `json:"role,omitempty"`
+	Location    string `json:"location,omitempty"`
 }

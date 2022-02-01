@@ -15,7 +15,6 @@ import (
 
 	// "go.mongodb.org/mongo-driver/bson"
 	// "go.mongodb.org/mongo-driver/bson/primitive"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -65,7 +64,7 @@ func main() {
 
 	//ROUTE CONFIG
 	router := gin.Default()
-	router.Use(cors.Default())
+	router.Use(CORSMiddleware())
 	api := router.Group("api/v1")
 
 	//USER ROUTES
@@ -92,6 +91,23 @@ func main() {
 	api.PUT("/activity/:id", authMiddleware(), activityHandler.MarkActivityAsRead)
 
 	router.Run()
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 func authMiddleware() gin.HandlerFunc {

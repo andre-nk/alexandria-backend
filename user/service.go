@@ -21,11 +21,12 @@ func (service *service) RegisterUser(user UserInput) (User, error) {
 	userID := primitive.NewObjectID()
 
 	userInstance := User{
-		ID:       userID,
-		UID:      user.UID,
-		Role:     user.Role,
-		Location: user.Location,
-		Friends:  user.Friends,
+		ID:          userID,
+		DisplayName: user.DisplayName,
+		PhotoURL:    user.PhotoURL,
+		UID:         user.UID,
+		Role:        user.Role,
+		Location:    user.Location,
 	}
 
 	newUser, err := service.repository.RegisterUser(userInstance)
@@ -38,10 +39,11 @@ func (service *service) RegisterUser(user UserInput) (User, error) {
 
 func (service *service) UpdateUser(user UserInput) (User, error) {
 	userInstance := User{
-		UID:      user.UID,
-		Role:     user.Role,
-		Location: user.Location,
-		Friends:  user.Friends,
+		UID:         user.UID,
+		DisplayName: user.DisplayName,
+		PhotoURL:    user.PhotoURL,
+		Role:        user.Role,
+		Location:    user.Location,
 	}
 
 	updatedUser, err := service.repository.UpdateUser(userInstance)
