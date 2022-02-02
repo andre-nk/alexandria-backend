@@ -11,7 +11,7 @@ type Note struct {
 	Title            string             `json:"title,omitempty" bson:"title,omitempty"`             //biarin nanti di formik ini required
 	CreatorUID       string             `json:"creator_uid,omitempty" bson:"creator_uid,omitempty"` //biarin pasti ada
 	Tags             []string           `json:"tags,omitempty" bson:"tags"`                         //no omitempty spy bisa dihapus tagsnya / no tags at all
-	Content          []string           `json:"content,omitempty" bson:"content"`                   //no omitempty spy bisa dihapus
+	Content          string             `json:"content,omitempty" bson:"content"`                   //no omitempty spy bisa dihapus
 	CreatedAt        time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`   //biarin
 	UpdatedAt        time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`   //biarin
 	IsStarred        bool               `json:"is_starred" bson:"is_starred"`                       //no omitempty spy bisa false
