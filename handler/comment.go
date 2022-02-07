@@ -54,6 +54,7 @@ func (handler *commentHandler) CreateComment(context *gin.Context) {
 		for _, mentionedID := range newComment.Mentions {
 			activity := activity.Activity{
 				ID:          primitive.NewObjectID(),
+				CreatorUID:  input.CreatorUID,
 				ActivityID:  newComment.ID,
 				AffiliateID: mentionedID,
 				CreatedAt:   time.Now(),
