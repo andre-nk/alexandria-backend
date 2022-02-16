@@ -23,6 +23,7 @@ func (service *service) RegisterUser(user UserInput) (User, error) {
 	userInstance := User{
 		ID:          userID,
 		DisplayName: user.DisplayName,
+		Email:       user.Email,
 		PhotoURL:    user.PhotoURL,
 		UID:         user.UID,
 		Role:        user.Role,
@@ -41,6 +42,7 @@ func (service *service) UpdateUser(user UserInput) (User, error) {
 	userInstance := User{
 		UID:         user.UID,
 		DisplayName: user.DisplayName,
+		Email:       user.Email,
 		PhotoURL:    user.PhotoURL,
 		Role:        user.Role,
 		Location:    user.Location,
