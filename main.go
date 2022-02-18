@@ -72,6 +72,7 @@ func main() {
 	api.PUT("/users", authMiddleware(), userHandler.UpdateUser)
 	api.DELETE("/users/:uid", authMiddleware(), userHandler.DeleteUser)
 	api.GET("/users/:uid", userHandler.GetUserByUID)
+	api.GET("/users/e/:email", userHandler.GetUserByEmail)
 
 	//NOTES ROUTES
 	api.POST("/notes", authMiddleware(), noteHandler.CreateNote)

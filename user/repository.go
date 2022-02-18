@@ -12,6 +12,7 @@ type Repository interface {
 	UpdateUser(user User) (User, error)
 	DeleteUser(id string) error
 	GetUserByUID(id string) (User, error)
+	GetUserByEmail(email string) (User, error)
 }
 
 type repository struct {
@@ -92,6 +93,24 @@ func (repo *repository) GetUserByUID(id string) (User, error) {
 			"uid": id,
 		},
 	).Decode(&user)
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (repo *repository) GetUserByEmail(email string) (User, error) {
+	var user User
+
+	err := repo.db.Collection("users").FindOne(
+		context.Background(),
+		bson.M{
+			"email": email,
+		},
+	).Decode(&user)
+
 	if err != nil {
 		return user, err
 	}

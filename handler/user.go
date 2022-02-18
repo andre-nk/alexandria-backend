@@ -218,3 +218,42 @@ func (handler *userHandler) GetUserByUID(context *gin.Context) {
 
 	context.JSON(http.StatusOK, response)
 }
+
+func (handler *userHandler) GetUserByEmail(context *gin.Context) {
+	var email user.UserEmailUri
+
+	err := context.ShouldBindUri(&email)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to fetch user due to invalid email",
+			http.StatusUnprocessableEntity,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	user, err := handler.service.GetUserByEmail(email.Email)
+	if err != nil {
+		response := helper.APIResponse(
+			"Failed to fetch user due to server error",
+			http.StatusBadRequest,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse(
+		"User fetched!",
+		http.StatusOK,
+		"success",
+		user,
+	)
+
+	context.JSON(http.StatusOK, response)
+}

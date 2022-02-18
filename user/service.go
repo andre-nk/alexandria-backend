@@ -7,6 +7,7 @@ type Service interface {
 	UpdateUser(user UserInput) (User, error)
 	DeleteUser(id string) error
 	GetUserByUID(id string) (User, error)
+	GetUserByEmail(email string) (User, error)
 }
 
 type service struct {
@@ -67,6 +68,15 @@ func (service *service) DeleteUser(id string) error {
 
 func (service *service) GetUserByUID(id string) (User, error) {
 	user, err := service.repository.GetUserByUID(id)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (service *service) GetUserByEmail(email string) (User, error) {
+	user, err := service.repository.GetUserByEmail(email)
 	if err != nil {
 		return user, err
 	}

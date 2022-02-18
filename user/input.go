@@ -4,6 +4,10 @@ type UserIDUri struct {
 	UID string `uri:"uid" binding:"required"`
 }
 
+type UserEmailUri struct {
+	Email string `uri:"email" binding:"required"`
+}
+
 type UserInput struct {
 	UID         string `json:"uid" binding:"required"`
 	DisplayName string `json:"displayName" binding:"required"`
