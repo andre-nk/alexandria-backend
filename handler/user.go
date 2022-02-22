@@ -236,6 +236,19 @@ func (handler *userHandler) GetUserByEmail(context *gin.Context) {
 	}
 
 	user, err := handler.service.GetUserByEmail(email.Email)
+
+	if err != nil && err.Error() == "mongo: no documents in result" {
+		response := helper.APIResponse(
+			"No user found with this email",
+			http.StatusNotFound,
+			"failed",
+			err.Error(),
+		)
+
+		context.JSON(http.StatusNoContent, response)
+		return
+	}
+
 	if err != nil {
 		response := helper.APIResponse(
 			"Failed to fetch user due to server error",
