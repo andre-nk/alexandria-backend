@@ -83,7 +83,7 @@ func main() {
 
 	//COMMENTS
 	api.POST("/comments", authMiddleware(), commentHandler.CreateComment)
-	api.GET("/notes/:id/comments/", commentHandler.GetCommentsByNoteID)
+	api.GET("/notes/:id/comments", commentHandler.GetCommentsByNoteID)
 	api.GET("/notes/:id/comments/:comment_id", commentHandler.GetCommentByID)
 	api.DELETE("/notes/:id/comments/:comment_id", authMiddleware(), commentHandler.DeleteCommentByID)
 
